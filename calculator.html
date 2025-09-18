@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bitcoin: Box 3 vs BV Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1700px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .input-section {
+            background: #e8f4fd;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .input-group {
+            display: inline-block;
+            margin: 10px 15px;
+            vertical-align: top;
+        }
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #333;
+            font-size: 12px;
+        }
+        input[type="number"] {
+            width: 120px;
+            padding: 8px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        input[type="number"]:focus {
+            border-color: #4CAF50;
+            outline: none;
+        }
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .table-section, .chart-section {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 1px 5px rgba(0,0,0,0.1);
+        }
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 9px;
+        }
+        .comparison-table th, .comparison-table td {
+            border: 1px solid #ddd;
+            padding: 2px;
+            text-align: right;
+        }
+        .comparison-table th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+            font-size: 8px;
+        }
+        .box3-header {
+            background-color: #ffeb3b !important;
+            color: #000;
+        }
+        .bv-header {
+            background-color: #2196f3 !important;
+            color: white;
+        }
+        .theoretical-header {
+            background-color: #9c27b0 !important;
+            color: white;
+        }
+        .box3-row { background-color: #fffde7; }
+        .bv-row { background-color: #e3f2fd; }
+        .theoretical-row { background-color: #f3e5f5; }
+        .year-column {
+            background-color: #f5f5f5 !important;
+            font-weight: bold;
+        }
+        .total-row {
+            background-color: #f0f0f0;
+            font-weight: bold;
+            border-top: 2px solid #333;
+        }
+        .euro { font-family: monospace; }
+        .btc { font-family: monospace; color: #ff9800; }
+        .summary {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e8f5e8;
+            border-radius: 8px;
+            border-left: 5px solid #4CAF50;
+        }
+        .summary h3 { margin-top: 0; color: #2e7d32; }
+        .positive { color: #2e7d32; }
+        .negative { color: #d32f2f; }
+        .breakdown {
+            background-color: #f9f9f9;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-size: 13px;
+        }
+        .warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 10px;
+        }
+        .chart-info {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-size: 12px;
+        }
+        .breakeven-point {
+            color: #e91e63;
+            font-weight: bold;
+        }
+        .chart-tabs {
+            display: flex;
+            margin-bottom: 10px;
+        }
+        .chart-tab {
+            padding: 8px 16px;
+            background: #f0f0f0;
+            border: 1px solid #ddd;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .chart-tab.active {
+            background: #2196f3;
+            color: white;
+        }
+        .chart-tab:first-child {
+            border-radius: 5px 0 0 5px;
+        }
+        .chart-tab:last-child {
+            border-radius: 0 5px 5px 0;
+        }
+        @media (max-width: 1400px) {
+            .content-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Bitcoin: Box 3 vs BV Calculator</h1>
+        
+        <div class="input-section">
+            <h3>Parameters</h3>
+            <div class="input-group">
+                <label for="startAmount">Startbedrag (€):</label>
+                <input type="number" id="startAmount" value="100000" min="1000" step="1000">
+            </div>
+            <div class="input-group">
+                <label for="growthRate">Bitcoin groei per jaar (%):</label>
+                <input type="number" id="growthRate" value="7" min="0" step="1">
+            </div>
+            <div class="input-group">
+                <label for="endYear">Eindjaar (ook BV uitkering):</label>
+                <input type="number" id="endYear" value="2030" min="2025" max="2099">
+            </div>
+           
+            <div class="input-group">
+                <label for="btcPrice">Bitcoin prijs start datum (€):</label>
+                <input type="number" id="btcPrice" value="100000" min="1000" step="1000">
+            </div>
+        </div>
+
+        <div class="content-grid">
+            <div class="table-section">
+                <h3>Jaar-voor-jaar Vergelijking</h3>
+                <table class="comparison-table" id="comparisonTable"></table>
+                <div class="summary" id="summary"></div>
+            </div>
+
+            <div class="chart-section">
+                <h3>Analyse</h3>
+                <div class="chart-tabs">
+                    <div class="chart-tab active" onclick="switchChart('growth')">Groei %</div>
+                    <div class="chart-tab" onclick="switchChart('years')">Jaren</div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="breakEvenChart" width="500" height="300"></canvas>
+                </div>
+                <div class="chart-info" id="chartInfo"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentChartType = 'growth';
+
+        function formatEuro(amount) {
+            return '€ ' + Math.round(amount).toLocaleString('nl-NL');
+        }
+
+        function formatBTC(amount) {
+            return amount.toFixed(3) + ' BTC';
+        }
+
+        function calculateBox3Tax(currentValue, previousValue, year) {
+            if (year < 2028) {
+                const heffingsVrijVermogen = 57684;
+                const belastbaarVermogen = Math.max(0, currentValue - heffingsVrijVermogen);
+                const fictieRendement = 0.0617;
+                return belastbaarVermogen * fictieRendement * 0.31;
+            } else {
+                const heffingsVrijInkomen = 1250;
+                const werkelijkRendement = Math.max(0, currentValue - previousValue);
+                const belastbaarRendement = Math.max(0, werkelijkRendement - heffingsVrijInkomen);
+                return belastbaarRendement * 0.36;
+            }
+        }
+
+        function calculateDividendTax(amount) {
+            if (amount <= 67804) {
+                return amount * 0.245;
+            } else {
+                return 67804 * 0.245 + (amount - 67804) * 0.31;
+            }
+        }
+
+        function calculateScenario(startAmount, growthRate, endYear, btcPrice) {
+            const startBtcAmount = startAmount / btcPrice;
+            let box3BitcoinAmount = startBtcAmount;
+            let bvBitcoinAmount = startBtcAmount;
+            let box3TotalTax = 0;
+            let bvTotalTax = 0;
+            let previousBox3Value = startAmount;
+            let tableData = [];
+
+            for (let year = 2025; year <= endYear; year++) {
+                const currentBtcPrice = btcPrice * Math.pow(1 + growthRate, year - 2025);
+                
+                const theoreticalBtcAmount = startBtcAmount;
+                const theoreticalValue = theoreticalBtcAmount * currentBtcPrice;
+                
+                const box3StartValue = box3BitcoinAmount * currentBtcPrice;
+                const bvStartValue = bvBitcoinAmount * currentBtcPrice;
+
+                const box3YearTax = calculateBox3Tax(box3StartValue, previousBox3Value, year);
+                const needToSellBox3 = Math.max(0, box3YearTax);
+                const box3BitcoinSold = needToSellBox3 / currentBtcPrice;
+                box3BitcoinAmount = Math.max(0, box3BitcoinAmount - box3BitcoinSold);
+                box3TotalTax += box3YearTax;
+
+                let bvYearTax = 0;
+                let bvBitcoinSold = 0;
+                
+                if (year === endYear) {
+                    const totalProfit = bvStartValue - startAmount;
+                    const corporateTax = totalProfit * 0.258;
+                    const netAfterCorporateTax = bvStartValue - corporateTax;
+                    const dividendTax = calculateDividendTax(netAfterCorporateTax);
+                    
+                    bvYearTax = corporateTax + dividendTax;
+                    bvTotalTax = bvYearTax;
+                    bvBitcoinSold = bvYearTax / currentBtcPrice;
+                    bvBitcoinAmount = Math.max(0, bvBitcoinAmount - bvBitcoinSold);
+                }
+
+                tableData.push({
+                    year, theoreticalBtcAmount, theoreticalValue,
+                    box3StartBtc: box3BitcoinAmount + box3BitcoinSold,
+                    box3StartValue, box3YearTax, box3EndBtc: box3BitcoinAmount,
+                    bvStartBtc: bvBitcoinAmount + bvBitcoinSold,
+                    bvStartValue, bvYearTax, bvEndBtc: bvBitcoinAmount
+                });
+
+                previousBox3Value = box3BitcoinAmount * currentBtcPrice;
+            }
+
+            const finalBtcPrice = btcPrice * Math.pow(1 + growthRate, endYear - 2025);
+            const theoreticalFinalValue = startBtcAmount * finalBtcPrice;
+            
+            return {
+                tableData, startBtcAmount, theoreticalFinalValue,
+                box3BitcoinAmount, bvBitcoinAmount,
+                box3FinalValue: box3BitcoinAmount * finalBtcPrice,
+                bvFinalValue: bvBitcoinAmount * finalBtcPrice,
+                box3TotalTax, bvTotalTax
+            };
+        }
+
+        function generateTable(result, endYear) {
+            let tableHTML = `
+                <tr>
+                    <th rowspan="2">Jaar</th>
+                    <th colspan="2" class="theoretical-header">Theoretisch</th>
+                    <th colspan="4" class="box3-header">Box 3</th>
+                    <th colspan="4" class="bv-header">BV</th>
+                </tr>
+                <tr>
+                    <th class="theoretical-header">BTC</th>
+                    <th class="theoretical-header">Waarde</th>
+                    <th class="box3-header">BTC Start</th>
+                    <th class="box3-header">Waarde</th>
+                    <th class="box3-header">Belasting</th>
+                    <th class="box3-header">BTC Eind</th>
+                    <th class="bv-header">BTC Start</th>
+                    <th class="bv-header">Waarde</th>
+                    <th class="bv-header">Belasting</th>
+                    <th class="bv-header">BTC Eind</th>
+                </tr>
+            `;
+
+            result.tableData.forEach(row => {
+                tableHTML += `
+                    <tr>
+                        <td class="year-column">${row.year}</td>
+                        <td class="theoretical-row btc">${formatBTC(row.theoreticalBtcAmount)}</td>
+                        <td class="theoretical-row euro">${formatEuro(row.theoreticalValue)}</td>
+                        <td class="box3-row btc">${formatBTC(row.box3StartBtc)}</td>
+                        <td class="box3-row euro">${formatEuro(row.box3StartValue)}</td>
+                        <td class="box3-row euro">${formatEuro(row.box3YearTax)}</td>
+                        <td class="box3-row btc">${formatBTC(row.box3EndBtc)}</td>
+                        <td class="bv-row btc">${formatBTC(row.bvStartBtc)}</td>
+                        <td class="bv-row euro">${formatEuro(row.bvStartValue)}</td>
+                        <td class="bv-row euro">${formatEuro(row.bvYearTax)}</td>
+                        <td class="bv-row btc">${formatBTC(row.bvEndBtc)}</td>
+                    </tr>
+                `;
+            });
+
+            tableHTML += `
+                <tr class="total-row">
+                    <td><strong>EINDRESULTAAT</strong></td>
+                    <td class="btc"><strong>${formatBTC(result.startBtcAmount)}</strong></td>
+                    <td class="euro"><strong>${formatEuro(result.theoreticalFinalValue)}</strong></td>
+                    <td>-</td>
+                    <td class="euro"><strong>${formatEuro(result.box3FinalValue)}</strong></td>
+                    <td class="euro"><strong>${formatEuro(result.box3TotalTax)}</strong></td>
+                    <td class="btc"><strong>${formatBTC(result.box3BitcoinAmount)}</strong></td>
+                    <td>-</td>
+                    <td class="euro"><strong>${formatEuro(result.bvFinalValue)}</strong></td>
+                    <td class="euro"><strong>${formatEuro(result.bvTotalTax)}</strong></td>
+                    <td class="btc"><strong>${formatBTC(result.bvBitcoinAmount)}</strong></td>
+                </tr>
+            `;
+
+            document.getElementById('comparisonTable').innerHTML = tableHTML;
+        }
+
+        function generateSummary(result, endYear, startAmount, btcPrice) {
+            const box3Loss = result.theoreticalFinalValue - result.box3FinalValue;
+            const bvLoss = result.theoreticalFinalValue - result.bvFinalValue;
+            const difference = result.bvFinalValue - result.box3FinalValue;
+            const betterOption = difference > 0 ? 'BV Route' : 'Box 3';
+
+            document.getElementById('summary').innerHTML = `
+                <h4>Eindresultaat (${endYear})</h4>
+                <p><strong>Theoretisch:</strong> ${formatBTC(result.startBtcAmount)} = ${formatEuro(result.theoreticalFinalValue)}</p>
+                <p><strong>Box 3:</strong> ${formatBTC(result.box3BitcoinAmount)} = ${formatEuro(result.box3FinalValue)}</p>
+                <p><strong>BV:</strong> ${formatBTC(result.bvBitcoinAmount)} = ${formatEuro(result.bvFinalValue)}</p>
+                
+                <div class="breakdown">
+                    <strong>Verlies t.o.v. Theoretisch:</strong><br>
+                    • Box 3 verlies: ${formatEuro(box3Loss)} (${((box3Loss/result.theoreticalFinalValue)*100).toFixed(1)}%)<br>
+                    • BV verlies: ${formatEuro(bvLoss)} (${((bvLoss/result.theoreticalFinalValue)*100).toFixed(1)}%)
+                </div>
+                
+                <div class="warning">
+                    <strong>Verschil:</strong> ${formatEuro(Math.abs(difference))} voordeel <strong class="${difference > 0 ? 'positive' : 'negative'}">${betterOption}</strong>
+                </div>
+            `;
+        }
+
+        function switchChart(type) {
+            currentChartType = type;
+            document.querySelectorAll('.chart-tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+            generateChart();
+        }
+
+        function generateChart() {
+            const startAmount = parseFloat(document.getElementById('startAmount').value);
+            const growthRate = parseFloat(document.getElementById('growthRate').value) / 100;
+            const endYear = parseInt(document.getElementById('endYear').value);
+            const btcPrice = parseFloat(document.getElementById('btcPrice').value);
+
+            if (currentChartType === 'growth') {
+                generateGrowthChart(startAmount, endYear,   btcPrice, growthRate);
+            } else {
+                generateYearsChart(startAmount, growthRate,  btcPrice, endYear);
+            }
+        }
+
+        function generateGrowthChart(startAmount, endYear, btcPrice, currentGrowthRate) {
+            const canvas = document.getElementById('breakEvenChart');
+            const ctx = canvas.getContext('2d');
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const dataPoints = [];
+            let breakEvenPoint = null;
+            
+            for (let growthPercent = 0; growthPercent <= 30; growthPercent += 1) {
+                const growthRate = growthPercent / 100;
+                const result = calculateScenario(startAmount, growthRate, endYear, btcPrice);
+                const difference = result.bvFinalValue - result.box3FinalValue;
+                
+                dataPoints.push({ x: growthPercent, y: difference });
+                
+                if (breakEvenPoint === null && difference > 1000) {
+                    breakEvenPoint = growthPercent;
+                }
+            }
+            
+            drawChart(ctx, canvas, dataPoints, currentGrowthRate * 100, 30, '%', 'Bitcoin Groei per Jaar (%)', breakEvenPoint);
+            
+            const currentDiff = calculateScenario(startAmount, currentGrowthRate, endYear, btcPrice);
+            const diff = currentDiff.bvFinalValue - currentDiff.box3FinalValue;
+            
+            let infoHTML = `
+                <strong>Groei % Analyse (eindjaar ${endYear}):</strong><br>
+                • Huidige groei: ${(currentGrowthRate * 100).toFixed(1)}%<br>
+                • Verschil: ${formatEuro(Math.abs(diff))} voordeel ${diff > 0 ? 'BV' : 'Box 3'}<br>
+            `;
+            
+            if (breakEvenPoint !== null && breakEvenPoint <= 30) {
+                infoHTML += `• <span class="breakeven-point">Breakeven: ${breakEvenPoint}% groei per jaar</span><br>`;
+                infoHTML += `• BV wordt beter na ${breakEvenPoint}% groei`;
+            } else if (diff > 0) {
+                infoHTML += `• BV is beter bij alle groeipercentages`;
+            } else {
+                infoHTML += `• Box 3 is beter bij alle groeipercentages (tot 30%)`;
+            }
+            
+            document.getElementById('chartInfo').innerHTML = infoHTML;
+        }
+
+        function generateYearsChart(startAmount, growthRate, btcPrice, currentEndYear) {
+            const canvas = document.getElementById('breakEvenChart');
+            const ctx = canvas.getContext('2d');
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const dataPoints = [];
+            let breakEvenPoint = null;
+            
+            for (let year = 2025; year <= 2045; year++) {
+                const result = calculateScenario(startAmount, growthRate, year, btcPrice);
+                const difference = result.bvFinalValue - result.box3FinalValue;
+                
+                dataPoints.push({ x: year, y: difference });
+                
+                if (breakEvenPoint === null && difference > 1000) {
+                    breakEvenPoint = year;
+                }
+            }
+            
+            drawChart(ctx, canvas, dataPoints, currentEndYear, 2045, '', 'Eindjaar', breakEvenPoint, 2025);
+            
+            const currentDiff = calculateScenario(startAmount, growthRate, currentEndYear, btcPrice);
+            const diff = currentDiff.bvFinalValue - currentDiff.box3FinalValue;
+            
+            let infoHTML = `
+                <strong>Jaren Analyse (${(growthRate * 100).toFixed(1)}% groei):</strong><br>
+                • Huidig eindjaar: ${currentEndYear}<br>
+                • Verschil: ${formatEuro(Math.abs(diff))} voordeel ${diff > 0 ? 'BV' : 'Box 3'}<br>
+            `;
+            
+            if (breakEvenPoint !== null && breakEvenPoint <= 2045) {
+                infoHTML += `• <span class="breakeven-point">Breakeven jaar: ${breakEvenPoint}</span><br>`;
+                infoHTML += `• BV wordt beter vanaf jaar ${breakEvenPoint}`;
+            } else if (diff > 0) {
+                infoHTML += `• BV is beter bij alle jaren`;
+            } else {
+                infoHTML += `• Box 3 is beter bij alle jaren (tot 2045)`;
+            }
+            
+            document.getElementById('chartInfo').innerHTML = infoHTML;
+        }
+
+        function drawChart(ctx, canvas, dataPoints, currentValue, maxX, suffix, xLabel, breakEvenPoint, minX = 0) {
+            const padding = 60;
+            const chartWidth = canvas.width - 2 * padding;
+            const chartHeight = canvas.height - 2 * padding;
+            
+            const allY = dataPoints.map(d => d.y);
+            const minY = Math.min(...allY);
+            const maxY = Math.max(...allY);
+            const yPadding = Math.abs(maxY - minY) * 0.1;
+            const adjustedMinY = minY - yPadding;
+            const adjustedMaxY = maxY + yPadding;
+            const yRange = adjustedMaxY - adjustedMinY;
+            
+            const xRange = maxX - minX;
+            
+            function scaleX(x) { return padding + ((x - minX) / xRange) * chartWidth; }
+            function scaleY(y) { return padding + chartHeight - ((y - adjustedMinY) / yRange) * chartHeight; }
+            
+            // Grid
+            ctx.strokeStyle = '#e8e8e8';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            for (let i = 0; i <= 6; i++) {
+                const x = padding + (chartWidth * i / 6);
+                ctx.moveTo(x, padding);
+                ctx.lineTo(x, padding + chartHeight);
+            }
+            for (let i = 0; i <= 6; i++) {
+                const y = padding + (chartHeight * i / 6);
+                ctx.moveTo(padding, y);
+                ctx.lineTo(padding + chartWidth, y);
+            }
+            ctx.stroke();
+            
+            // Axes
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, padding + chartHeight);
+            ctx.moveTo(padding, padding + chartHeight);
+            ctx.lineTo(padding + chartWidth, padding + chartHeight);
+            ctx.stroke();
+            
+            // Zero line
+            if (adjustedMinY <= 0 && adjustedMaxY >= 0) {
+                const zeroY = scaleY(0);
+                ctx.strokeStyle = '#666';
+                ctx.lineWidth = 1;
+                ctx.setLineDash([5, 5]);
+                ctx.beginPath();
+                ctx.moveTo(padding, zeroY);
+                ctx.lineTo(padding + chartWidth, zeroY);
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+            
+            // Data line
+            ctx.strokeStyle = '#1976d2';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            dataPoints.forEach((point, index) => {
+                const x = scaleX(point.x);
+                const y = scaleY(point.y);
+                if (index === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            });
+            ctx.stroke();
+            
+            // Current point
+            const currentX = scaleX(Math.min(currentValue, maxX));
+            const currentPoint = dataPoints.find(p => Math.abs(p.x - currentValue) < 0.5);
+            if (currentPoint) {
+                const currentY = scaleY(currentPoint.y);
+                ctx.fillStyle = '#ff9800';
+                ctx.beginPath();
+                ctx.arc(currentX, currentY, 5, 0, 2 * Math.PI);
+                ctx.fill();
+            }
+            
+            // Breakeven point
+            if (breakEvenPoint !== null && breakEvenPoint <= maxX) {
+                const breakX = scaleX(breakEvenPoint);
+                const breakY = scaleY(0);
+                ctx.fillStyle = '#e91e63';
+                ctx.beginPath();
+                ctx.arc(breakX, breakY, 4, 0, 2 * Math.PI);
+                ctx.fill();
+            }
+            
+            // Labels
+            ctx.fillStyle = '#333';
+            ctx.font = '10px Arial';
+            ctx.textAlign = 'center';
+            
+            for (let i = 0; i <= 6; i++) {
+                const xValue = minX + (xRange * i / 6);
+                ctx.fillText(Math.round(xValue) + suffix, padding + (chartWidth * i / 6), padding + chartHeight + 15);
+            }
+            
+            ctx.textAlign = 'right';
+            for (let i = 0; i <= 6; i++) {
+                const yValue = adjustedMinY + (yRange * i / 6);
+                if (Math.abs(yValue) > 1000) {
+                    ctx.fillText(formatEuro(yValue), padding - 5, padding + chartHeight - (chartHeight * i / 6) + 3);
+                }
+            }
+            
+            // X-axis title
+            ctx.textAlign = 'center';
+            ctx.font = 'bold 11px Arial';
+            ctx.fillText(xLabel, padding + chartWidth / 2, canvas.height - 5);
+        }
+
+        function calculateComparison() {
+            const startAmount = parseFloat(document.getElementById('startAmount').value);
+            const growthRate = parseFloat(document.getElementById('growthRate').value) / 100;
+            const endYear = parseInt(document.getElementById('endYear').value);
+            const btcPrice = parseFloat(document.getElementById('btcPrice').value);
+
+            const result = calculateScenario(startAmount, growthRate, endYear, btcPrice);
+            
+            generateTable(result, endYear);
+            generateSummary(result, endYear, startAmount, btcPrice);
+            generateChart();
+        }
+
+        // Event listeners
+        document.getElementById('startAmount').addEventListener('input', calculateComparison);
+        document.getElementById('growthRate').addEventListener('input', calculateComparison);
+        document.getElementById('endYear').addEventListener('input', calculateComparison);
+        document.getElementById('btcPrice').addEventListener('input', calculateComparison);
+
+        calculateComparison();
+    </script>
+</body>
+</html>
