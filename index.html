@@ -50,6 +50,19 @@
             border-color: #4CAF50;
             outline: none;
         }
+        .growth-input {
+            width: 60px;
+            padding: 4px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            font-size: 12px;
+            text-align: right;
+        }
+        .growth-input:focus {
+            border-color: #4CAF50;
+            outline: none;
+            background-color: #f0f8ff;
+        }
         .tax-rules-section {
             background: #fff3e0;
             padding: 20px;
@@ -119,6 +132,10 @@
             background-color: #f2f2f2;
             font-weight: bold;
         }
+        .growth-header {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
         .box3-header {
             background-color: #ffeb3b !important;
             color: #000;
@@ -134,6 +151,7 @@
         .box3-row { background-color: #fffde7; }
         .bv-row { background-color: #e3f2fd; }
         .theoretical-row { background-color: #f3e5f5; }
+        .growth-row { background-color: #f5f5f5; }
         .year-column {
             background-color: #f5f5f5 !important;
             font-weight: bold;
@@ -184,8 +202,8 @@
                 <input type="number" id="startAmount" value="100000" min="1000" step="1000">
             </div>
             <div class="input-group">
-                <label for="growthRate">Bitcoin groei per jaar (%):</label>
-                <input type="number" id="growthRate" value="7" min="0" step="1">
+                <label for="growthRate">Default Bitcoin groei per jaar (%):</label>
+                <input type="number" id="growthRate" value="40" min="-99" max="200" step="1">
             </div>
             <div class="input-group">
                 <label for="endYear">Eindjaar (ook BV uitkering):</label>
@@ -240,10 +258,11 @@
                     <div class="tax-period">
                         <strong>Vennootschapsbelasting:</strong>
                         <ul class="tax-list">
-                            <li>Tarief: <strong>19%</strong> tot €200.000, <strong>25,8%</strong> daarboven</li>
+                            <li>Tarief: <strong>19%</strong> tot €200.000 winst</li>
+                            <li>Tarief: <strong>25,8%</strong> boven €200.000 winst</li>
                             <li>Alleen bij uitkering/verkoop (eindjaar)</li>
                         </ul>
-                    </div>
+                    </div> 
                     <div>
                         <strong>Dividendbelasting (bij uitkering):</strong>
                         <ul class="tax-list">
@@ -262,6 +281,8 @@
     </div>
 
     <script>
+        let yearlyGrowthRates = {};
+        
         function formatEuro(amount) {
             return '€ ' + Math.round(amount).toLocaleString('nl-NL');
         }
@@ -292,7 +313,7 @@
             }
         }
 
-        function calculateScenario(startAmount, growthRate, endYear, btcPrice) {
+        function calculateScenario(startAmount, defaultGrowthRate, endYear, btcPrice) {
             const startBtcAmount = startAmount / btcPrice;
             let box3BitcoinAmount = startBtcAmount;
             let bvBitcoinAmount = startBtcAmount;
@@ -300,9 +321,12 @@
             let bvTotalTax = 0;
             let previousBox3Value = startAmount;
             let tableData = [];
+            let cumulativeBtcPrice = btcPrice;
 
             for (let year = 2025; year <= endYear; year++) {
-                const currentBtcPrice = btcPrice * Math.pow(1 + growthRate, year - 2025);
+                const growthRate = (yearlyGrowthRates[year] !== undefined ? yearlyGrowthRates[year] : defaultGrowthRate) / 100;
+                cumulativeBtcPrice = cumulativeBtcPrice * (1 + growthRate);
+                const currentBtcPrice = cumulativeBtcPrice;
                 
                 const theoreticalBtcAmount = startBtcAmount;
                 const theoreticalValue = theoreticalBtcAmount * currentBtcPrice;
@@ -337,7 +361,9 @@
                 }
 
                 tableData.push({
-                    year, theoreticalBtcAmount, theoreticalValue,
+                    year, 
+                    growthRate: yearlyGrowthRates[year] !== undefined ? yearlyGrowthRates[year] : defaultGrowthRate,
+                    theoreticalBtcAmount, theoreticalValue,
                     box3StartBtc: box3BitcoinAmount + box3BitcoinSold,
                     box3StartValue, box3YearTax, box3EndBtc: box3BitcoinAmount,
                     bvStartBtc: bvBitcoinAmount + bvBitcoinSold,
@@ -347,7 +373,7 @@
                 previousBox3Value = box3BitcoinAmount * currentBtcPrice;
             }
 
-            const finalBtcPrice = btcPrice * Math.pow(1 + growthRate, endYear - 2025);
+            const finalBtcPrice = cumulativeBtcPrice;
             const theoreticalFinalValue = startBtcAmount * finalBtcPrice;
             
             return {
@@ -363,6 +389,7 @@
             let tableHTML = `
                 <tr>
                     <th rowspan="2">Jaar</th>
+                    <th rowspan="2" class="growth-header">Jaarlijkse groei %</th>
                     <th colspan="2" class="theoretical-header">Theoretisch</th>
                     <th colspan="4" class="box3-header">Box 3</th>
                     <th colspan="4" class="bv-header">BV</th>
@@ -385,6 +412,7 @@
                 tableHTML += `
                     <tr>
                         <td class="year-column">${row.year}</td>
+                        <td class="growth-row"><input type="number" class="growth-input" data-year="${row.year}" value="${row.growthRate}" step="1" min="-50" max="200">%</td>
                         <td class="theoretical-row btc">${formatBTC(row.theoreticalBtcAmount)}</td>
                         <td class="theoretical-row euro">${formatEuro(row.theoreticalValue)}</td>
                         <td class="box3-row btc">${formatBTC(row.box3StartBtc)}</td>
@@ -402,6 +430,7 @@
             tableHTML += `
                 <tr class="total-row">
                     <td><strong>EINDRESULTAAT</strong></td>
+                    <td>-</td>
                     <td class="btc"><strong>${formatBTC(result.startBtcAmount)}</strong></td>
                     <td class="euro"><strong>${formatEuro(result.theoreticalFinalValue)}</strong></td>
                     <td>-</td>
@@ -416,6 +445,15 @@
             `;
 
             document.getElementById('comparisonTable').innerHTML = tableHTML;
+            
+            document.querySelectorAll('.growth-input').forEach(input => {
+                input.addEventListener('change', function() {
+                    const year = parseInt(this.dataset.year);
+                    const value = parseFloat(this.value);
+                    yearlyGrowthRates[year] = value;
+                    calculateComparison();
+                });
+            });
         }
 
         function generateSummary(result, endYear, startAmount, btcPrice) {
@@ -441,16 +479,10 @@
                 </div>
             `;
         }
-
-        
-
-        
-      
-      
        
         function calculateComparison() {
             const startAmount = parseFloat(document.getElementById('startAmount').value);
-            const growthRate = parseFloat(document.getElementById('growthRate').value) / 100;
+            const growthRate = parseFloat(document.getElementById('growthRate').value);
             const endYear = parseInt(document.getElementById('endYear').value);
             const btcPrice = parseFloat(document.getElementById('btcPrice').value);
 
@@ -460,10 +492,15 @@
             generateSummary(result, endYear, startAmount, btcPrice);
         }
 
-        // Event listeners
         document.getElementById('startAmount').addEventListener('input', calculateComparison);
-        document.getElementById('growthRate').addEventListener('input', calculateComparison);
-        document.getElementById('endYear').addEventListener('input', calculateComparison);
+        document.getElementById('growthRate').addEventListener('input', () => {
+            yearlyGrowthRates = {}; 
+            calculateComparison();
+        });
+        document.getElementById('endYear').addEventListener('input', () => {
+            yearlyGrowthRates = {}; 
+            calculateComparison();
+        });
         document.getElementById('btcPrice').addEventListener('input', calculateComparison);
 
         calculateComparison();
