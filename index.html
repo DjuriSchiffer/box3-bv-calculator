@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bitcoin: Box 3 vs BV Calculator</title>
-    <style>
+   <style>
         body {
             font-family: Arial, sans-serif;
             max-width: 1700px;
@@ -18,6 +18,10 @@
             border-radius: 10px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
+        .header{
+            display: flex;
+            gap: 20px;
+        }
         .input-section {
             background: #e8f4fd;
             padding: 20px;
@@ -27,7 +31,6 @@
         .input-group {
             display: inline-block;
             margin: 10px 15px;
-            vertical-align: top;
         }
         label {
             display: block;
@@ -47,22 +50,65 @@
             border-color: #4CAF50;
             outline: none;
         }
-        .content-grid {
-            display: grid;
-            grid-template-columns: 1.2fr 0.8fr;
-            gap: 20px;
-            margin-top: 20px;
-        }
-        .table-section, .chart-section {
-            background: white;
+        .tax-rules-section {
+            background: #fff3e0;
+            padding: 20px;
             border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .tax-rules-section h3 {
+            margin-top: 0;
+        }
+        .tax-rules-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 15px;
+        }
+        .tax-box3 {
+            background: #fffde7;
             padding: 15px;
-            box-shadow: 0 1px 5px rgba(0,0,0,0.1);
+            border-radius: 6px;
+            border-left: 4px solid #fbc02d;
+        }
+        .tax-box3 h4 {
+            margin-top: 0;
+        }
+        .tax-bv {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #1976d2;
+        }
+        .tax-bv h4 {
+            margin-top: 0;
+        }
+        .tax-period {
+            margin-bottom: 15px;
+        }
+        .tax-list {
+            margin: 5px 0;
+            padding-left: 20px;
+            font-size: 13px;
+        }
+        .tax-advantage {
+            background: #bbdefb;
+            padding: 8px;
+            border-radius: 4px;
+            margin-top: 10px;
+            font-size: 12px;
+        }
+        .full-width-section {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        .half-width-section {
+            width: 50%;
+            margin-bottom: 20px;
         }
         .comparison-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 9px;
         }
         .comparison-table th, .comparison-table td {
             border: 1px solid #ddd;
@@ -72,7 +118,6 @@
         .comparison-table th {
             background-color: #f2f2f2;
             font-weight: bold;
-            font-size: 8px;
         }
         .box3-header {
             background-color: #ffeb3b !important;
@@ -99,23 +144,18 @@
             border-top: 2px solid #333;
         }
         .euro { font-family: monospace; }
-        .btc { font-family: monospace; color: #ff9800; }
+        .btc { font-family: monospace;  }
         .summary {
-            margin-top: 20px;
             padding: 15px;
             background-color: #e8f5e8;
             border-radius: 8px;
-            border-left: 5px solid #4CAF50;
         }
-        .summary h3 { margin-top: 0; color: #2e7d32; }
+        .summary h4 { margin-top: 0;  }
         .positive { color: #2e7d32; }
         .negative { color: #d32f2f; }
         .breakdown {
             background-color: #f9f9f9;
             padding: 10px;
-            border-radius: 5px;
-            margin-top: 10px;
-            font-size: 13px;
         }
         .warning {
             background-color: #fff3cd;
@@ -125,53 +165,19 @@
             border-radius: 5px;
             margin-top: 10px;
         }
-        .chart-container {
-            position: relative;
-            height: 300px;
-            margin-top: 10px;
-        }
-        .chart-info {
-            background-color: #f8f9fa;
-            padding: 10px;
-            border-radius: 5px;
-            margin-top: 10px;
-            font-size: 12px;
-        }
-        .breakeven-point {
-            color: #e91e63;
-            font-weight: bold;
-        }
-        .chart-tabs {
-            display: flex;
-            margin-bottom: 10px;
-        }
-        .chart-tab {
-            padding: 8px 16px;
-            background: #f0f0f0;
-            border: 1px solid #ddd;
-            cursor: pointer;
-            font-size: 12px;
-        }
-        .chart-tab.active {
-            background: #2196f3;
-            color: white;
-        }
-        .chart-tab:first-child {
-            border-radius: 5px 0 0 5px;
-        }
-        .chart-tab:last-child {
-            border-radius: 0 5px 5px 0;
-        }
+       
         @media (max-width: 1400px) {
-            .content-grid { grid-template-columns: 1fr; }
+            .tax-rules-grid { 
+                grid-template-columns: 1fr; 
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Bitcoin: Box 3 vs BV Calculator</h1>
-        
-        <div class="input-section">
+        <div class="header">
+         <div class="input-section">
             <h3>Parameters</h3>
             <div class="input-group">
                 <label for="startAmount">Startbedrag (€):</label>
@@ -185,37 +191,77 @@
                 <label for="endYear">Eindjaar (ook BV uitkering):</label>
                 <input type="number" id="endYear" value="2030" min="2025" max="2099">
             </div>
-           
             <div class="input-group">
                 <label for="btcPrice">Bitcoin prijs start datum (€):</label>
                 <input type="number" id="btcPrice" value="100000" min="1000" step="1000">
             </div>
         </div>
+         <div class="half-width-section">
+            <div class="summary" id="summary"></div>
+        </div>
+        </div>
+        
+        <div class="full-width-section">
+            <h3>Jaar-voor-jaar vergelijking</h3>
+            <table class="comparison-table" id="comparisonTable"></table>
+        </div>
 
-        <div class="content-grid">
-            <div class="table-section">
-                <h3>Jaar-voor-jaar Vergelijking</h3>
-                <table class="comparison-table" id="comparisonTable"></table>
-                <div class="summary" id="summary"></div>
-            </div>
-
-            <div class="chart-section">
-                <h3>Analyse</h3>
-                <div class="chart-tabs">
-                    <div class="chart-tab active" onclick="switchChart('growth')">Groei %</div>
-                    <div class="chart-tab" onclick="switchChart('years')">Jaren</div>
+        <div class="tax-rules-section">
+            <h3>Gebruikte belastingregels</h3>
+            
+            <div class="tax-rules-grid">
+                <div class="tax-box3">
+                    <h4>Box 3 Route</h4>
+                    
+                    <div class="tax-period">
+                        <strong>2025-2027 (Fictief rendement stelsel):</strong>
+                        <ul class="tax-list">
+                            <li>Heffingsvrij vermogen: <strong>€57.684</strong></li>
+                            <li>Fictief rendement: <strong>6,17%</strong></li>
+                            <li>Belastingtarief: <strong>36%</strong> over fictief rendement</li>
+                            <li>Belasting onafhankelijk van werkelijke waardestijging</li>
+                        </ul>
+                    </div>
+                    
+                    <div>
+                        <strong>Vanaf 2028 (Werkelijk rendement):</strong>
+                        <ul class="tax-list">
+                            <li>Heffingsvrij rendement: <strong>€1.250</strong></li>
+                            <li>Belasting over <strong>werkelijke waardestijging</strong></li>
+                            <li>Belastingtarief: <strong>36%</strong></li>
+                            <li>Jaarlijkse verkoop Bitcoin voor belasting</li>
+                        </ul>
+                    </div>
                 </div>
-                <div class="chart-container">
-                    <canvas id="breakEvenChart" width="500" height="300"></canvas>
+                
+                <div class="tax-bv">
+                    <h4>BV Route</h4>
+                    
+                    <div class="tax-period">
+                        <strong>Vennootschapsbelasting:</strong>
+                        <ul class="tax-list">
+                            <li>Tarief: <strong>19%</strong> tot €200.000, <strong>25,8%</strong> daarboven</li>
+                            <li>Alleen bij uitkering/verkoop (eindjaar)</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <strong>Dividendbelasting (bij uitkering):</strong>
+                        <ul class="tax-list">
+                            <li><strong>24,5%</strong> tot €67.804</li>
+                            <li><strong>31%</strong> boven €67.804</li>
+                            <li>Over netto bedrag na vennootschapsbelasting</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="tax-advantage">
+                        <strong>💡 Voordeel:</strong> Geen jaarlijkse belasting → Bitcoin blijft volledig groeien
+                    </div>
                 </div>
-                <div class="chart-info" id="chartInfo"></div>
             </div>
         </div>
     </div>
 
     <script>
-        let currentChartType = 'growth';
-
         function formatEuro(amount) {
             return '€ ' + Math.round(amount).toLocaleString('nl-NL');
         }
@@ -229,7 +275,7 @@
                 const heffingsVrijVermogen = 57684;
                 const belastbaarVermogen = Math.max(0, currentValue - heffingsVrijVermogen);
                 const fictieRendement = 0.0617;
-                return belastbaarVermogen * fictieRendement * 0.31;
+                return belastbaarVermogen * fictieRendement * 0.36;
             } else {
                 const heffingsVrijInkomen = 1250;
                 const werkelijkRendement = Math.max(0, currentValue - previousValue);
@@ -275,7 +321,12 @@
                 
                 if (year === endYear) {
                     const totalProfit = bvStartValue - startAmount;
-                    const corporateTax = totalProfit * 0.258;
+                    let corporateTax;
+                    if (totalProfit <= 200000) {
+                        corporateTax = totalProfit * 0.19;
+                    } else {
+                        corporateTax = 200000 * 0.19 + (totalProfit - 200000) * 0.258;
+                    }
                     const netAfterCorporateTax = bvStartValue - corporateTax;
                     const dividendTax = calculateDividendTax(netAfterCorporateTax);
                     
@@ -391,227 +442,12 @@
             `;
         }
 
-        function switchChart(type) {
-            currentChartType = type;
-            document.querySelectorAll('.chart-tab').forEach(tab => tab.classList.remove('active'));
-            event.target.classList.add('active');
-            generateChart();
-        }
+        
 
-        function generateChart() {
-            const startAmount = parseFloat(document.getElementById('startAmount').value);
-            const growthRate = parseFloat(document.getElementById('growthRate').value) / 100;
-            const endYear = parseInt(document.getElementById('endYear').value);
-            const btcPrice = parseFloat(document.getElementById('btcPrice').value);
-
-            if (currentChartType === 'growth') {
-                generateGrowthChart(startAmount, endYear,   btcPrice, growthRate);
-            } else {
-                generateYearsChart(startAmount, growthRate,  btcPrice, endYear);
-            }
-        }
-
-        function generateGrowthChart(startAmount, endYear, btcPrice, currentGrowthRate) {
-            const canvas = document.getElementById('breakEvenChart');
-            const ctx = canvas.getContext('2d');
-            
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            const dataPoints = [];
-            let breakEvenPoint = null;
-            
-            for (let growthPercent = 0; growthPercent <= 30; growthPercent += 1) {
-                const growthRate = growthPercent / 100;
-                const result = calculateScenario(startAmount, growthRate, endYear, btcPrice);
-                const difference = result.bvFinalValue - result.box3FinalValue;
-                
-                dataPoints.push({ x: growthPercent, y: difference });
-                
-                if (breakEvenPoint === null && difference > 1000) {
-                    breakEvenPoint = growthPercent;
-                }
-            }
-            
-            drawChart(ctx, canvas, dataPoints, currentGrowthRate * 100, 30, '%', 'Bitcoin Groei per Jaar (%)', breakEvenPoint);
-            
-            const currentDiff = calculateScenario(startAmount, currentGrowthRate, endYear, btcPrice);
-            const diff = currentDiff.bvFinalValue - currentDiff.box3FinalValue;
-            
-            let infoHTML = `
-                <strong>Groei % Analyse (eindjaar ${endYear}):</strong><br>
-                • Huidige groei: ${(currentGrowthRate * 100).toFixed(1)}%<br>
-                • Verschil: ${formatEuro(Math.abs(diff))} voordeel ${diff > 0 ? 'BV' : 'Box 3'}<br>
-            `;
-            
-            if (breakEvenPoint !== null && breakEvenPoint <= 30) {
-                infoHTML += `• <span class="breakeven-point">Breakeven: ${breakEvenPoint}% groei per jaar</span><br>`;
-                infoHTML += `• BV wordt beter na ${breakEvenPoint}% groei`;
-            } else if (diff > 0) {
-                infoHTML += `• BV is beter bij alle groeipercentages`;
-            } else {
-                infoHTML += `• Box 3 is beter bij alle groeipercentages (tot 30%)`;
-            }
-            
-            document.getElementById('chartInfo').innerHTML = infoHTML;
-        }
-
-        function generateYearsChart(startAmount, growthRate, btcPrice, currentEndYear) {
-            const canvas = document.getElementById('breakEvenChart');
-            const ctx = canvas.getContext('2d');
-            
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            const dataPoints = [];
-            let breakEvenPoint = null;
-            
-            for (let year = 2025; year <= 2045; year++) {
-                const result = calculateScenario(startAmount, growthRate, year, btcPrice);
-                const difference = result.bvFinalValue - result.box3FinalValue;
-                
-                dataPoints.push({ x: year, y: difference });
-                
-                if (breakEvenPoint === null && difference > 1000) {
-                    breakEvenPoint = year;
-                }
-            }
-            
-            drawChart(ctx, canvas, dataPoints, currentEndYear, 2045, '', 'Eindjaar', breakEvenPoint, 2025);
-            
-            const currentDiff = calculateScenario(startAmount, growthRate, currentEndYear, btcPrice);
-            const diff = currentDiff.bvFinalValue - currentDiff.box3FinalValue;
-            
-            let infoHTML = `
-                <strong>Jaren Analyse (${(growthRate * 100).toFixed(1)}% groei):</strong><br>
-                • Huidig eindjaar: ${currentEndYear}<br>
-                • Verschil: ${formatEuro(Math.abs(diff))} voordeel ${diff > 0 ? 'BV' : 'Box 3'}<br>
-            `;
-            
-            if (breakEvenPoint !== null && breakEvenPoint <= 2045) {
-                infoHTML += `• <span class="breakeven-point">Breakeven jaar: ${breakEvenPoint}</span><br>`;
-                infoHTML += `• BV wordt beter vanaf jaar ${breakEvenPoint}`;
-            } else if (diff > 0) {
-                infoHTML += `• BV is beter bij alle jaren`;
-            } else {
-                infoHTML += `• Box 3 is beter bij alle jaren (tot 2045)`;
-            }
-            
-            document.getElementById('chartInfo').innerHTML = infoHTML;
-        }
-
-        function drawChart(ctx, canvas, dataPoints, currentValue, maxX, suffix, xLabel, breakEvenPoint, minX = 0) {
-            const padding = 60;
-            const chartWidth = canvas.width - 2 * padding;
-            const chartHeight = canvas.height - 2 * padding;
-            
-            const allY = dataPoints.map(d => d.y);
-            const minY = Math.min(...allY);
-            const maxY = Math.max(...allY);
-            const yPadding = Math.abs(maxY - minY) * 0.1;
-            const adjustedMinY = minY - yPadding;
-            const adjustedMaxY = maxY + yPadding;
-            const yRange = adjustedMaxY - adjustedMinY;
-            
-            const xRange = maxX - minX;
-            
-            function scaleX(x) { return padding + ((x - minX) / xRange) * chartWidth; }
-            function scaleY(y) { return padding + chartHeight - ((y - adjustedMinY) / yRange) * chartHeight; }
-            
-            // Grid
-            ctx.strokeStyle = '#e8e8e8';
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            for (let i = 0; i <= 6; i++) {
-                const x = padding + (chartWidth * i / 6);
-                ctx.moveTo(x, padding);
-                ctx.lineTo(x, padding + chartHeight);
-            }
-            for (let i = 0; i <= 6; i++) {
-                const y = padding + (chartHeight * i / 6);
-                ctx.moveTo(padding, y);
-                ctx.lineTo(padding + chartWidth, y);
-            }
-            ctx.stroke();
-            
-            // Axes
-            ctx.strokeStyle = '#333';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.moveTo(padding, padding);
-            ctx.lineTo(padding, padding + chartHeight);
-            ctx.moveTo(padding, padding + chartHeight);
-            ctx.lineTo(padding + chartWidth, padding + chartHeight);
-            ctx.stroke();
-            
-            // Zero line
-            if (adjustedMinY <= 0 && adjustedMaxY >= 0) {
-                const zeroY = scaleY(0);
-                ctx.strokeStyle = '#666';
-                ctx.lineWidth = 1;
-                ctx.setLineDash([5, 5]);
-                ctx.beginPath();
-                ctx.moveTo(padding, zeroY);
-                ctx.lineTo(padding + chartWidth, zeroY);
-                ctx.stroke();
-                ctx.setLineDash([]);
-            }
-            
-            // Data line
-            ctx.strokeStyle = '#1976d2';
-            ctx.lineWidth = 3;
-            ctx.beginPath();
-            dataPoints.forEach((point, index) => {
-                const x = scaleX(point.x);
-                const y = scaleY(point.y);
-                if (index === 0) ctx.moveTo(x, y);
-                else ctx.lineTo(x, y);
-            });
-            ctx.stroke();
-            
-            // Current point
-            const currentX = scaleX(Math.min(currentValue, maxX));
-            const currentPoint = dataPoints.find(p => Math.abs(p.x - currentValue) < 0.5);
-            if (currentPoint) {
-                const currentY = scaleY(currentPoint.y);
-                ctx.fillStyle = '#ff9800';
-                ctx.beginPath();
-                ctx.arc(currentX, currentY, 5, 0, 2 * Math.PI);
-                ctx.fill();
-            }
-            
-            // Breakeven point
-            if (breakEvenPoint !== null && breakEvenPoint <= maxX) {
-                const breakX = scaleX(breakEvenPoint);
-                const breakY = scaleY(0);
-                ctx.fillStyle = '#e91e63';
-                ctx.beginPath();
-                ctx.arc(breakX, breakY, 4, 0, 2 * Math.PI);
-                ctx.fill();
-            }
-            
-            // Labels
-            ctx.fillStyle = '#333';
-            ctx.font = '10px Arial';
-            ctx.textAlign = 'center';
-            
-            for (let i = 0; i <= 6; i++) {
-                const xValue = minX + (xRange * i / 6);
-                ctx.fillText(Math.round(xValue) + suffix, padding + (chartWidth * i / 6), padding + chartHeight + 15);
-            }
-            
-            ctx.textAlign = 'right';
-            for (let i = 0; i <= 6; i++) {
-                const yValue = adjustedMinY + (yRange * i / 6);
-                if (Math.abs(yValue) > 1000) {
-                    ctx.fillText(formatEuro(yValue), padding - 5, padding + chartHeight - (chartHeight * i / 6) + 3);
-                }
-            }
-            
-            // X-axis title
-            ctx.textAlign = 'center';
-            ctx.font = 'bold 11px Arial';
-            ctx.fillText(xLabel, padding + chartWidth / 2, canvas.height - 5);
-        }
-
+        
+      
+      
+       
         function calculateComparison() {
             const startAmount = parseFloat(document.getElementById('startAmount').value);
             const growthRate = parseFloat(document.getElementById('growthRate').value) / 100;
@@ -622,7 +458,6 @@
             
             generateTable(result, endYear);
             generateSummary(result, endYear, startAmount, btcPrice);
-            generateChart();
         }
 
         // Event listeners
